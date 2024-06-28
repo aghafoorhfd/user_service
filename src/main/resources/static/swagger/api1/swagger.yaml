@@ -1,0 +1,405 @@
+openapi: 3.0.3
+info:
+  title: User Service for PMO
+  description: 'This is a User Service for PMO based on the OpenAPI 3.0 specification.  '
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://localhost:8080/user-service
+paths:
+  /users/register:
+    post:
+      tags:
+        - User registration
+      summary: Register a new user into the pmo
+      description: Register a new user into the pmo
+      operationId: registerUser
+      requestBody:
+        description: User details object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegisterResponse'
+        '400':
+          description: Invalid input
+  /users/verify-email:
+    put:
+      tags:
+        - User Email Verification
+      summary: Verifies user email through token
+      description: Verify user email
+      operationId: verifyEmail
+      parameters:
+        - name: token
+          in: query
+          description: email verification token
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 44e128a5-ac7a-4c9a-be4c-224b6bf81b20
+      responses:
+        '200':
+          description: Link has been verified
+        '406':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Token has been expired
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Token or user not found
+  /users/registration-status:
+    put:
+      tags:
+        - User Registration Status
+      summary: Update user's registration status
+      description: Returns the id of updated user
+      operationId: updateUserRegistrationStatus
+      parameters:
+        - name: email
+          in: query
+          description: email of the user
+          required: true
+          schema:
+            type: string
+            format: email
+            example: abc@example.com
+        - name: registrationStatus
+          in: query
+          description: registration status of the user
+          required: true
+          schema:
+            type: string
+            format: enums
+            example: ACTIVE
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+                example: 44e128a5-ac7a-4c9a-be4c-224b6bf81b20
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: user not found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Email link not verified
+  /users/forgot-password:
+    post:
+      tags:
+        - User forgot password
+      summary: Sends user email for verification and reset password
+      description: Sends user email for verification and reset password
+      operationId: forgotPassword
+      requestBody:
+        description: User email object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserForgotPasswordRequest'
+        required: true
+      responses:
+        '200':
+          description: Link is sent to reset password, kindly check your mail
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Error on field email
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Registration process not completed, kindly register
+  /users:
+    post:
+      tags:
+        - User
+      summary: Add a new user into the pmo
+      description: Add a new user into the pmo
+      operationId: addUser
+      parameters:
+        - name: X-TenantID
+          in: header
+          description: tenant of users to be fetched
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 44e128a5-ac7a-4c9a-be4c-224b6bf81b20
+      requestBody:
+        description: Create a new user into the pmo
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '405':
+          description: Invalid input
+    put:
+      tags:
+        - User
+      summary: Update user
+      description: Returns the updated user
+      operationId: updateUser
+      parameters:
+        - name: X-TenantID
+          in: header
+          description: tenant of users to be fetched
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 44e128a5-ac7a-4c9a-be4c-224b6bf81b20
+      requestBody:
+        description: Updates a new user into the pmo
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid data supplied
+    get:
+      tags:
+        - User
+      summary: Get all users
+      description: Returns a user list
+      operationId: getAllUsers
+      parameters:
+        - name: status
+          in: query
+          description: status of users to be fetched
+          required: true
+          schema:
+            type: string
+            example: Pending
+        - name: X-TenantID
+          in: header
+          description: tenant of users to be fetched
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 44e128a5-ac7a-4c9a-be4c-224b6bf81b20
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid data supplied
+        '404':
+          description: User list not found
+  /users/{id}:
+    get:
+      tags:
+        - User
+      summary: Find user by ID
+      description: Returns a single user
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          description: ID of user to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: X-TenantID
+          in: header
+          description: tenant of users to be fetched
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 44e128a5-ac7a-4c9a-be4c-224b6bf81b20
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: User not found
+components:
+  schemas:
+    User:
+      required:
+        - name
+        - email
+        - phone
+        - status
+        - invite
+        - username
+        - accesstype
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 44e128a5-ac7a-4c9a-be4c-224b6bf81b20
+        name:
+          type: string
+          example: khalid
+        username:
+          type: string
+          example: mkhalid
+        email:
+          type: string
+          format: email
+          example: mkhalid@nisum.com
+        phone:
+          type: string
+          example: "+923123062462"
+        status:
+          type: string
+          description: user status in the pmo
+          enum:
+            - inactive
+            - active
+        invite:
+          type: string
+          example: link to be send
+        accesstype:
+          type: string
+          description: user access type in the pmo
+          enum:
+            - PM
+            - RM
+            - CM
+            - FM
+            - BM
+            - Admin
+    UserRegisterRequest:
+      required:
+        - firstName
+        - lastName
+        - email
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: khalid
+        lastName:
+          type: string
+          example: mkhalid
+        email:
+          type: string
+          format: email
+          example: mkhalid@nisum.com
+    UserRegisterResponse:
+      required:
+        - companyId
+        - userId
+        - isMultiTenancyEnabled
+      type: object
+      properties:
+        companyId:
+          type: string
+          format: uuid
+          example: 44e128a5-ac7a-4c9a-be4c-224b6bf81b20
+        userId:
+          type: string
+          format: uuid
+          example: 44e128a5-ac7a-4c9a-be4c-224b6bf81b20
+        isMultiTenancyEnabled:
+          type: boolean
+          example: false
+    ErrorModel:
+      type: object
+      properties:
+        httpStatus:
+          type: string
+          example: "ERROR_CODE(NOT_FOUND,CONFLICT)"
+        userMessage:
+          type: string
+          example: "Any Message"
+        developerMessage:
+          type: string
+          example: "Any Message"
+    UserForgotPasswordRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: mkhalid@nisum.com
+  requestBodies:
+    User:
+      description: User object that needs to be added to the PMO
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    UserRegisterRequest:
+      description: User registeration object that needs to be added to the PMO
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserRegisterRequest'
+    UserForgotPasswordRequest:
+      description: User forgot password object containing email
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserForgotPasswordRequest'
+    UserArray:
+      description: List of user object
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'

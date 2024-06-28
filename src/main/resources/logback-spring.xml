@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+
+    <logger name="com.pmo.userservice" level="#logback.loglevel#"/>
+    <logger name="com.pmo.common" level="#logback.loglevel#"/>
+    <logger name="com.pmo.userservice.infrastructure.logging" level="WARN"/>
+
+    <logger name="javax.management.remote.rmi" level="WARN"/>
+
+
+    <logger name="javax.activation" level="WARN"/>
+    <logger name="javax.mail" level="WARN"/>
+    <logger name="javax.xml.bind" level="WARN"/>
+    <logger name="ch.qos.logback" level="WARN"/>
+    <logger name="com.codahale.metrics" level="WARN"/>
+    <logger name="com.ryantenney" level="WARN"/>
+    <logger name="com.sun" level="WARN"/>
+    <logger name="com.zaxxer" level="WARN"/>
+    <logger name="io.undertow" level="WARN"/>
+    <logger name="io.undertow.websockets.jsr" level="ERROR"/>
+    <logger name="org.apache" level="WARN"/>
+    <logger name="org.apache.catalina.startup.DigesterFactory" level="OFF"/>
+    <logger name="org.bson" level="WARN"/>
+    <logger name="org.hibernate.validator" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.ejb.HibernatePersistence" level="OFF"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    <logger name="org.springframework.cache" level="WARN"/>
+    <logger name="org.thymeleaf" level="WARN"/>
+    <logger name="org.xnio" level="WARN"/>
+    <logger name="springfox" level="WARN"/>
+    <logger name="sun.rmi" level="WARN"/>
+    <logger name="liquibase" level="INFO"/>
+    <logger name="LiquibaseSchemaResolver" level="INFO"/>
+    <logger name="sun.rmi.transport" level="WARN"/>
+
+
+    <appender name="Console"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %black(%d{yy-MM-dd E HH:mm:ss.SSS}) %highlight(%red(%-5level)) --- %boldYellow([%X{traceId}/%X{spanId}]) %boldCyan([%8.15t]){cyan} %highlight(%blue(%-40.40logger{0})) : %black(%m){faint}%n
+            </Pattern>
+        </layout>
+    </appender>
+
+    <!-- LOG everything at INFO level -->
+    <root level="info">
+        <appender-ref ref="Console" />
+    </root>
+
+    <logger name="com.pmo" level="trace" additivity="false">
+        <appender-ref ref="Console" />
+    </logger>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>user_service.log</file>
+        <encoder>
+            <pattern>%d{yy-MM-dd E HH:mm:ss.SSS} %-5level --- [%X{traceId}/%X{spanId}] [%8.15t] %-40.40logger{0} :%m%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="FILE" />
+    </root>
+
+    <logger name="com.pmo" level="trace" additivity="false">
+        <appender-ref ref="FILE" />
+    </logger>
+
+</configuration>

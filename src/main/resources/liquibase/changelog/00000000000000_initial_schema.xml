@@ -1,0 +1,1786 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <property name="u_id" value="(uuid())" dbms="mysql"/>
+    <changeSet id="1671282177" author="pmo">
+        <createTable tableName="address">
+            <column name="id" type="UUID">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="address1" type="varchar(50)"/>
+            <column name="address2" type="varchar(50)"/>
+            <column name="city" type="varchar(20)"/>
+            <column name="country" type="varchar(20)"/>
+            <column name="phone1" type="varchar(20)"/>
+            <column name="phone2" type="varchar(20)"/>
+            <column name="state" type="varchar(20)"/>
+            <column name="zip" type="varchar(20)"/>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1671282178" author="pmo">
+        <createTable tableName="company">
+            <column name="id" type="UUID">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="organization_name" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="company_type" type="varchar(50)"/>
+            <column name="description" type="varchar(100)"/>
+            <column name="company_address_id" type="UUID">
+                <constraints foreignKeyName="fk_company_address_id" references="address(id)" nullable="false"/>
+            </column>
+            <column name="phone" type="varchar(20)"/>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1671282179" author="pmo">
+        <createTable tableName="user">
+            <column name="id" type="UUID">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="first_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="varchar(50)"/>
+            <column name="email" type="varchar(191)">
+                <constraints unique="true" nullable="false" uniqueConstraintName="ux_user_email"/>
+            </column>
+            <column name="dob" type="varchar(20)"/>
+            <column name="gender" type="varchar(10)"/>
+            <column name="company_id" type="UUID">
+                <constraints foreignKeyName="fk_company_id" references="company(id)" nullable="false"/>
+            </column>
+            <column name="user_address_id" type="UUID">
+                <constraints foreignKeyName="fk_user_address_id" references="address(id)" nullable="false"/>
+            </column>
+            <column name="phone" type="varchar(20)"/>
+            <column name="is_delete" type="boolean" valueBoolean="false"/>
+            <column name="registration_status" type="varchar(20)"/>
+            <column name="access_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invitation_status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_url" type="varchar(256)"/>
+            <column name="lang_key" type="varchar(10)"/>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1671282180" author="pmo">
+        <createTable tableName="verification_token">
+            <column name="id" type="uuid" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="token" type="uuid">
+                <constraints unique="true" nullable="false" uniqueConstraintName="ux_user_verification_token"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints unique="true" nullable="false" foreignKeyName="fk_user_verification_token"
+                             references="user(id)"/>
+            </column>
+            <column name="expires_at" type="timestamp"/>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1671282181" author="pmo">
+        <addColumn tableName="company">
+            <column name="is_multi_tenancy_enabled" type="boolean" defaultValue="false"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1671282182" author="pmo">
+        <addColumn tableName="user">
+            <column name="iam_id" type="uuid"/>
+        </addColumn>
+        <addColumn tableName="company">
+            <column name="is_delete" type="boolean" defaultValue="false"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="1671282183" author="pmo">
+        <createTable tableName="role_privileges">
+            <column name="id" type="integer">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="role" type="varchar(50)"> </column>
+            <column name="privileges" type="json"> </column>
+
+        </createTable>
+        <addAutoIncrement tableName="role_privileges" columnName="id" columnDataType="integer" startWith="1" incrementBy="1" />
+    </changeSet>
+
+    <!--Insert data for role_privileges table-->
+    <changeSet id="1671282184" author="pmo">
+        <insert tableName="role_privileges">
+            <column name="role" value="superadmin"/>
+            <column name="privileges" value = '{"pages":{"admin":{"title":"Admin","subMenu":{"projectMetrics":{"title":"Project Metrics","view":true,"edit":true,"add":true,"delete":true},"budget":{"title":"Budget","view":true,"edit":true,"add":true},"resourceTeam":{"title":"Resource Team","view":true,"edit":true,"add":true,"delete":true,"list":true},"user":{"title":"User","view":true,"edit":true,"add":true,"delete":true,"list":true},"billing":{"title":"Billing","view":true,"edit":true,"add":true,"delete":true,"list":true}}},"projectManager":{"title":"Project Manager","subMenu":{"dashboard":{"title":"Project Dashboard","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectDetails":{"title":"Project Details","view":true,"edit":true,"add":true,"delete":true},"projectTimeline":{"title":"Project Timeline","view":true,"edit":true,"add":true,"delete":true,"list":true},"jiraTimeline":{"title":"Jira Timeline","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectConflicts":{"title":"Project Conflicts","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectResources":{"title":"Project Resources","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectBudget":{"title":"Project Budget","view":true,"edit":true,"add":true,"delete":true,"list":true},"changeHistory":{"title":"Change History","view":true,"edit":true,"add":true,"delete":true,"list":true}}},"resourceManager":{"title":"Resource Manager","subMenu":{"teamSetup":{"title":"Team Setup","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectCommitment":{"title":"Project Commitment","view":true,"edit":true,"add":true,"delete":true,"list":true},"designatedProjects":{"title":"Designated Projects","view":true,"edit":true,"add":true,"delete":true,"list":true},"assignedProjects":{"title":"Assigned Projects","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectResources":{"title":"Project Resources","view":true,"edit":true,"add":true,"delete":true,"list":true},"fullCommitment":{"title":"Full Commitment","view":true,"edit":true,"add":true,"delete":true,"list":true},"availableCapacity":{"title":"Available Capacity","view":true,"edit":true,"add":true,"delete":true,"list":true},"capacityByProject":{"title":"Capacity By Project","view":true,"edit":true,"add":true,"delete":true,"list":true}}},"conflictManager":{"title":"Conflict Manager","subMenu":{"dashboard":{"title":"Conflict Dashboard","view":true,"edit":true,"add":true,"delete":true,"list":true},"conflictsDetails":{"title":"Conflicts Details","view":true,"edit":true,"add":true,"delete":true,"list":true}}},"user":{"title":"User Dashboard","subMenu":{"myProjects":{"title":"My Projects","view":true,"edit":true,"add":true,"delete":true,"list":true},"myConflicts":{"title":"My Conflicts","view":true,"edit":true,"add":true,"delete":true,"list":true},"myWork":{"title":"My Work","view":true,"edit":true,"add":true,"delete":true,"list":true},"search":{"title":"Search","view":true,"edit":true,"add":true,"delete":true,"list":true}}}}}' />
+        </insert>
+        <insert tableName="role_privileges">
+            <column name="role" value="sysadmin"/>
+            <column name="privileges" value='{"pages":{"admin":{"title":"Admin","subMenu":{"projectMetrics":{"title":"Project Metrics","view":true,"edit":true,"add":true,"delete":true},"budget":{"title":"Budget","view":true,"edit":true,"add":true},"resourceTeam":{"title":"Resource Team","view":true,"edit":true,"add":true,"delete":true,"list":true},"user":{"title":"User","view":true,"edit":true,"add":true,"delete":true,"list":true},"billing":{"title":"Billing","view":true,"edit":true,"add":true,"delete":true,"list":true}}},"projectManager":{"title":"Project Manager","subMenu":{"dashboard":{"title":"Project Dashboard","view":true,"edit":true,"add":true,"list":true},"projectDetails":{"title":"Project Details","view":true,"edit":true,"add":true},"projectTimeline":{"title":"Project Timeline","view":true,"edit":true,"add":true,"list":true},"jiraTimeline":{"title":"Jira Timeline","view":true,"edit":true,"add":true,"list":true},"projectConflicts":{"title":"Project Conflicts","view":true,"edit":true,"add":true,"list":true},"projectResources":{"title":"Project Resources","view":true,"edit":true,"add":true,"list":true},"projectBudget":{"title":"Project Budget","view":true,"edit":true,"add":true,"list":true},"changeHistory":{"title":"Change History","view":true,"edit":true,"add":true,"list":true}}},"resourceManager":{"title":"Resource Manager","subMenu":{"teamSetup":{"title":"Team Setup","view":true,"edit":true,"add":true,"list":true},"projectCommitment":{"title":"Project Commitment","view":true,"edit":true,"add":true,"list":true},"designatedProjects":{"title":"Designated Projects","view":true,"edit":true,"add":true,"list":true},"assignedProjects":{"title":"Assigned Projects","view":true,"edit":true,"add":true,"list":true},"projectResources":{"title":"Project Resources","view":true,"edit":true,"add":true,"list":true},"fullCommitment":{"title":"Full Commitment","view":true,"edit":true,"add":true,"list":true},"availableCapacity":{"title":"Available Capacity","view":true,"edit":true,"add":true,"list":true},"capacityByProject":{"title":"Capacity By Project","view":true,"edit":true,"add":true,"list":true}}},"conflictManager":{"title":"Conflict Manager","subMenu":{"dashboard":{"title":"Conflict Dashboard","view":true,"edit":true,"add":true,"list":true},"conflictsDetails":{"title":"Conflicts Details","view":true,"edit":true,"add":true,"list":true}}},"user":{"title":"User Dashboard","subMenu":{"myProjects":{"title":"My Projects","view":true,"edit":true,"add":true,"list":true},"myConflicts":{"title":"My Conflicts","view":true,"edit":true,"add":true,"list":true},"myWork":{"title":"My Work","view":true,"edit":true,"add":true,"list":true},"search":{"title":"Search","view":true,"edit":true,"add":true,"list":true}}}}}'/>
+        </insert>
+        <insert tableName="role_privileges">
+            <column name="role" value="projectmanager"/>
+            <column name="privileges" value='{"pages":{"projectManager":{"title":"Project Manager","subMenu":{"dashboard":{"title":"Project Dashboard","view":true,"edit":true,"add":true,"list":true},"projectDetails":{"title":"Project Details","view":true,"edit":true,"add":true},"projectTimeline":{"title":"Project Timeline","view":true,"edit":true,"add":true,"delete":true,"list":true},"jiraTimeline":{"title":"Jira Timeline","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectConflicts":{"title":"Project Conflicts","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectResources":{"title":"Project Resources","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectBudget":{"title":"Project Budget","view":true,"edit":true,"add":true,"list":true},"changeHistory":{"title":"Change History","view":true,"edit":true,"add":true,"list":true}}},"conflictManager":{"title":"Conflict Manager","subMenu":{"dashboard":{"title":"Conflict Dashboard","view":true,"edit":true,"add":true,"list":true},"conflictsDetails":{"title":"Conflicts Details","view":true,"edit":true,"add":true,"list":true}}}}}'/>
+        </insert>
+        <insert tableName="role_privileges">
+            <column name="role" value="resourcemanager"/>
+            <column name="privileges" value='{"pages":{"resourceManager":{"title":"Resource Manager","subMenu":{"teamSetup":{"title":"Team Setup","view":true,"edit":true,"add":true,"delete":true,"list":true},"projectCommitment":{"title":"Project Commitment","view":true,"edit":true,"add":true,"list":true},"designatedProjects":{"title":"Designated Projects","view":true,"edit":true,"add":true,"list":true},"assignedProjects":{"title":"Assigned Projects","view":true,"edit":true,"add":true,"list":true},"projectResources":{"title":"Project Resources","view":true,"edit":true,"add":true,"list":true},"fullCommitment":{"title":"Full Commitment","view":true,"edit":true,"add":true,"list":true},"availableCapacity":{"title":"Available Capacity","view":true,"edit":true,"add":true,"list":true},"capacityByProject":{"title":"Capacity By Project","view":true,"edit":true,"add":true,"list":true}}}}}'/>
+        </insert>
+        <insert tableName="role_privileges">
+            <column name="role" value="generaluser"/>
+            <column name="privileges" value='{"pages":{"conflictManager":{"title":"Conflict Manager","subMenu":{"dashboard":{"title":"Conflict Dashboard","view":true,"edit":true,"add":true,"list":true},"conflictsDetails":{"title":"Conflicts Details","view":true,"edit":true,"add":true,"list":true}}},"user":{"title":"User Dashboard","subMenu":{"myProjects":{"title":"My Projects","view":true,"edit":true,"add":true,"list":true},"myConflicts":{"title":"My Conflicts","view":true,"edit":true,"add":true,"list":true},"myWork":{"title":"My Work","view":true,"edit":true,"add":true,"list":true},"search":{"title":"Search","view":true,"edit":true,"add":true,"list":true}}}}}'/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="1672139527" author="pmo">
+        <comment>Change default value of is delete in user</comment>
+        <update tableName="user">
+            <column name="is_delete" valueBoolean="false"/>
+            <where>is_delete IS NULL</where>
+        </update>
+        <addNotNullConstraint
+                tableName="user"
+                columnName="is_delete"
+                columnDataType="boolean"
+                validate="true"
+                defaultNullValue="0"/>
+    </changeSet>
+
+    <changeSet  author="pmo"  id="1672144258">
+        <addDefaultValue
+                columnDataType="boolean"
+                columnName="is_delete"
+                defaultValueBoolean="false"
+                tableName="user"/>
+    </changeSet>
+
+    <changeSet id="167370342" author="pmo">
+        <createTable tableName="resource_team">
+            <column name="id" type="uuid" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="resource_manager_id" type="UUID">
+                <constraints foreignKeyName="fk_user_resource_team_id" references="user(id)" nullable="false"  />
+            </column>
+            <column name="company_id" type="UUID"></column>
+            <column name="team_name" type="varchar(100)"/>
+            <column name="description" type="varchar(100)"/>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="is_delete" type="boolean" valueBoolean="false"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1673607952" author="pmo">
+        <createTable tableName="resource_team_detail">
+            <column name="id" type="uuid" autoIncrement="${autoIncrement}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="resource_team_id" type="UUID"></column>
+            <column name="user" type="UUID"></column>
+            <column name="designation" type="varchar(50)"/>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="is_delete" type="boolean" valueBoolean="false"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1674438686" author="pmo">
+        <modifyDataType
+                columnName="email"
+                newDataType="varchar(330)"
+                tableName="user"/>
+    </changeSet>
+    <changeSet id="1676879167" author="pmo">
+        <addColumn tableName="company">
+            <column name="subscription_id" type="uuid"/>
+        </addColumn>
+        <addColumn tableName="company">
+            <column name="total_licenses" type="integer"/>
+        </addColumn>
+        <addColumn tableName="company">
+            <column name="used_licenses" type="integer"/>
+        </addColumn>
+        <addColumn tableName="company">
+            <column name="package_start_date" type="timestamp"/>
+        </addColumn>
+        <addColumn tableName="company">
+            <column name="package_end_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1684888140" author="pmo">
+        <dropColumn tableName="user">
+            <column name="phone"/>
+        </dropColumn>
+    </changeSet>
+
+    <!--Creates Role, Screen, Action, RolePlanScreen, RolePlanScreenAction tables -->
+    <changeSet id="1689592327" author="pmo">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <not>
+                    <tableExists tableName="screen"/>
+                </not>
+            </and>
+            <and>
+                <not>
+                    <tableExists tableName="action"/>
+                </not>
+            </and>
+            <and>
+                <not>
+                    <tableExists tableName="role_plan_screen"/>
+                </not>
+            </and>
+            <and>
+                <not>
+                    <tableExists tableName="role_plan_screen_action"/>
+                </not>
+            </and>
+        </preConditions>
+        <createTable tableName="role">
+            <column name="id" type="UUID" defaultValueComputed="${u_id}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(50)"></column>
+            <column name="description" type="varchar(50)"/>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="is_delete" type="boolean" defaultValueBoolean="false"/>
+        </createTable>
+
+
+        <createTable tableName="screen">
+            <column name="id" type="UUID" defaultValueComputed="${u_id}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(50)"></column>
+            <column name="description" type="varchar(50)"/>
+            <column name="url" type="varchar(50)"></column>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="is_delete" type="boolean" defaultValueBoolean="false"/>
+        </createTable>
+
+        <createTable tableName="action">
+            <column name="id" type="UUID" defaultValueComputed="${u_id}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(50)"></column>
+            <column name="description" type="varchar(50)"/>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="is_delete" type="boolean" defaultValueBoolean="false"/>
+        </createTable>
+
+        <createTable tableName="role_plan_screen">
+            <column name="id" type="UUID" defaultValueComputed="${u_id}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="role_id" type="UUID">
+                <constraints foreignKeyName="fk_role_id" references="role(id)" nullable="false"/>
+            </column>
+            <column name="plan_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="screen_id" type="UUID">
+                <constraints foreignKeyName="fk_screen_id" references="screen(id)" nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="is_delete" type="boolean" defaultValueBoolean="false"/>
+        </createTable>
+
+        <createTable tableName="role_plan_screen_action">
+            <column name="id" type="UUID" defaultValueComputed="${u_id}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="role_plan_screen_id" type="UUID">
+                <constraints foreignKeyName="fk_role_plan_screen_id" references="role_plan_screen(id)" nullable="false"/>
+            </column>
+            <column name="action_id" type="UUID">
+                <constraints foreignKeyName="fk_action_id" references="action(id)" nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="is_delete" type="boolean" defaultValueBoolean="false"/>
+        </createTable>
+    </changeSet>
+
+    <!--Inserts data in Role table -->
+    <changeSet id="1689595927" author="pmo">
+        <insert tableName="role">
+            <column name="name" value="SUPER_ADMIN"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="role">
+            <column name="name" value="ADMIN"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="role">
+            <column name="name" value="PROJECT_MANAGER"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="role">
+            <column name="name" value="RESOURCE_MANAGER"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="role">
+            <column name="name" value="GENERAL_USER"/>
+            <column name="description" value=""/>
+        </insert>
+    </changeSet>
+
+    <!--Inserts data in Screen table -->
+    <changeSet id="1689599527" author="pmo">
+        <insert tableName="screen">
+            <column name="name" value="Admin"/>
+            <column name="url" value="admin/"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Cadence"/>
+            <column name="url" value="admin/cadence"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Project Metrics"/>
+            <column name="url" value="admin/projectMetrics"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Budget"/>
+            <column name="url" value="admin/budget"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Resource Team"/>
+            <column name="url" value="admin/resourceTeam"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="User"/>
+            <column name="url" value="admin/user"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Current Users"/>
+            <column name="url" value="admin/user/currentUsers"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Pending Requests"/>
+            <column name="url" value="admin/user/pendingRequests"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Pending Requests"/>
+            <column name="url" value="admin/budget"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Billing"/>
+            <column name="url" value="admin/billing"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Project Manager"/>
+            <column name="url" value="projectManager/"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Project Manager Dashboard"/>
+            <column name="url" value="projectManager/dashboard"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Jira Timeline"/>
+            <column name="url" value="projectManager/jiraTimeline"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Project Conflicts"/>
+            <column name="url" value="projectManager/projectConflicts"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Project Resources"/>
+            <column name="url" value="projectManager/projectResources"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Project Budget"/>
+            <column name="url" value="projectManager/projectBudget"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Project OKRs"/>
+            <column name="url" value="projectManager/projectOKRs"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Project History"/>
+            <column name="url" value="projectManager/projectHistory"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Resource Manager"/>
+            <column name="url" value="resourceManager/"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Resource Manager Dashboard"/>
+            <column name="url" value="resourceManager/dashboard"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Full Commitment"/>
+            <column name="url" value="resourceManager/fullCommitment"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Billing Dashboard"/>
+            <column name="url" value="billingDashboard/"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Resource Requests"/>
+            <column name="url" value="resourceRequests/"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="User Dashboard"/>
+            <column name="url" value="userDashboard/"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Card Details"/>
+            <column name="url" value="cardDetails/"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Analytics"/>
+            <column name="url" value="analytics/"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="Customer Activation"/>
+            <column name="url" value="customerActivation/"/>
+            <column name="description" value=""/>
+        </insert>
+    </changeSet>
+
+    <!--Inserts data in Action table -->
+    <changeSet id="1689603127" author="pmo">
+        <insert tableName="action">
+            <column name="name" value="add"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="action">
+            <column name="name" value="edit"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="action">
+            <column name="name" value="view"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="action">
+            <column name="name" value="delete"/>
+            <column name="description" value=""/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="1689771355" author="pmo">
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is SUPER_ADMIN and PLAN is FREE -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cadence')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/projectMetrics')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/currentUsers')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/pendingRequests')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/billing')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectHistory')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/fullCommitment')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is SUPER_ADMIN and PLAN is STANDARD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cadence')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/projectMetrics')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/resourceTeam')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/currentUsers')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/pendingRequests')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/billing')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/jiraTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectConflicts')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectResources')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectHistory')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/fullCommitment')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceRequests/')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is SUPER_ADMIN and PLAN is PREMIUM -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cadence')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/projectMetrics')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/resourceTeam')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/currentUsers')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/pendingRequests')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/billing')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/jiraTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectConflicts')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectResources')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectBudget')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectOKRs')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectHistory')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/fullCommitment')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceRequests/')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is SUPER_ADMIN and PLAN is GOLD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cadence')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/projectMetrics')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/resourceTeam')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/currentUsers')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/pendingRequests')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/billing')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/jiraTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectConflicts')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectResources')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectBudget')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectOKRs')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectHistory')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/fullCommitment')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceRequests/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='cardDetails/')"/>
+        </insert>
+
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is ADMIN and PLAN is FREE -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cadence')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/projectMetrics')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/currentUsers')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/pendingRequests')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/billing')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is ADMIN and PLAN is STANDARD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cadence')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/projectMetrics')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/resourceTeam')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/currentUsers')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/pendingRequests')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/billing')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is ADMIN and PLAN is PREMIUM -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cadence')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/projectMetrics')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/resourceTeam')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/currentUsers')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/pendingRequests')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/billing')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is ADMIN and PLAN is GOLD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cadence')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/projectMetrics')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/resourceTeam')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/currentUsers')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/user/pendingRequests')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/billing')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is PROJECT_MANAGER and PLAN is FREE -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectHistory')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is PROJECT_MANAGER and PLAN is STANDARD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/jiraTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectConflicts')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectResources')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectHistory')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is PROJECT_MANAGER and PLAN is PREMIUM -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/jiraTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectConflicts')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectResources')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectBudget')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectOKRs')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectHistory')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is PROJECT_MANAGER and PLAN is GOLD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/jiraTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectConflicts')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectResources')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectBudget')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectOKRs')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectHistory')"/>
+        </insert>
+
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is RESOURCE_MANAGER and PLAN is FREE -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/fullCommitment')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is RESOURCE_MANAGER and PLAN is STANDARD -->
+
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/fullCommitment')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceRequests/')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is RESOURCE_MANAGER and PLAN is PREMIUM -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/fullCommitment')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceRequests/')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is RESOURCE_MANAGER and PLAN is GOLD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/dashboard')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceManager/fullCommitment')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceRequests/')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is GENERAL_USER and PLAN is FREE -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is GENERAL_USER and PLAN is STANDARD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is GENERAL_USER and PLAN is PREMIUM -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is GENERAL_USER and PLAN is GOLD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/')"/>
+        </insert>
+
+    </changeSet>
+
+    <!--Stored Procedure to populate role_plan_screen_action table by providing ROLE_NAME, PLAN_ID and ACTION_NAME_LIST-->
+    <changeSet id="1689857755" author="pmo">
+        <sql splitStatements="false">
+            CREATE PROCEDURE insert_role_plan_screen_actions_by_role_plan_actions (
+            IN roleName VARCHAR(50),
+            IN planId VARCHAR(36),
+            IN actionNameList TEXT)
+
+            BEGIN
+            INSERT INTO `role_plan_screen_action`
+            (`role_plan_screen_id`,
+            `action_id`)
+
+
+            with t as (
+            SELECT rps.id as 'role_plan_screen_id', r.name as 'role_name', s.name as 'screen_name'
+            from role_plan_screen rps
+            inner join role r on r.id = rps.role_id
+            inner join screen s on s.id = rps.screen_id
+            where r.name = roleName
+            -- and s.url = 'admin/'
+            and plan_id = planId
+            )
+
+            select t.role_plan_screen_id, A.id from t, action as A
+            where FIND_IN_SET(A.name, actionNameList);
+            END
+        </sql>
+    </changeSet>
+
+    <!--Inserts data in Role_Plan_Screen_Action table, when ROLE is SUPER_ADMIN and PLAN is FREE, STANDARD, PREMIUM, GOLD -->
+    <changeSet id="1689857999" author="pmo">
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("SUPER_ADMIN",
+            "bc4fd015-99a1-402a-9803-64adbe972f8e", "add,edit,view,delete")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("SUPER_ADMIN",
+            "ee0e9f98-188c-4f5a-941f-281e1cf361e2", "add,edit,view,delete")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("SUPER_ADMIN",
+            "f7c087c3-f632-469e-9308-02da8392df07", "add,edit,view,delete")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("SUPER_ADMIN",
+            "527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab", "add,edit,view,delete")
+        </sql>
+    </changeSet>
+
+    <!--Inserts data in Role_Plan_Screen_Action table, when ROLE is ADMIN and PLAN is FREE, STANDARD, PREMIUM, GOLD -->
+    <changeSet id="1689857998" author="pmo">
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("ADMIN",
+            "bc4fd015-99a1-402a-9803-64adbe972f8e", "add,edit,view,delete")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("ADMIN",
+            "ee0e9f98-188c-4f5a-941f-281e1cf361e2", "add,edit,view,delete")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("ADMIN",
+            "f7c087c3-f632-469e-9308-02da8392df07", "add,edit,view,delete")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("ADMIN",
+            "527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab", "add,edit,view,delete")
+        </sql>
+    </changeSet>
+
+    <!--Inserts data in Role_Plan_Screen_Action table, when ROLE is PROJECT_MANAGER and PLAN is FREE, STANDARD, PREMIUM, GOLD -->
+    <changeSet id="1689857997" author="pmo">
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("PROJECT_MANAGER",
+            "bc4fd015-99a1-402a-9803-64adbe972f8e", "add,edit,view")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("PROJECT_MANAGER",
+            "ee0e9f98-188c-4f5a-941f-281e1cf361e2", "add,edit,view")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("PROJECT_MANAGER",
+            "f7c087c3-f632-469e-9308-02da8392df07", "add,edit,view")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("PROJECT_MANAGER",
+            "527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab", "add,edit,view")
+        </sql>
+    </changeSet>
+
+    <!--Inserts data in Role_Plan_Screen_Action table, when ROLE is RESOURCE_MANAGER and PLAN is FREE, STANDARD, PREMIUM, GOLD -->
+    <changeSet id="1689857996" author="pmo">
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("RESOURCE_MANAGER",
+            "bc4fd015-99a1-402a-9803-64adbe972f8e", "add,edit,view")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("RESOURCE_MANAGER",
+            "ee0e9f98-188c-4f5a-941f-281e1cf361e2", "add,edit,view")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("RESOURCE_MANAGER",
+            "f7c087c3-f632-469e-9308-02da8392df07", "add,edit,view")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("RESOURCE_MANAGER",
+            "527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab", "add,edit,view")
+        </sql>
+    </changeSet>
+
+    <!--Inserts data in Role_Plan_Screen_Action table, when ROLE is GENERAL_USER and PLAN is FREE, STANDARD, PREMIUM, GOLD -->
+    <changeSet id="1689837056" author="pmo">
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("GENERAL_USER",
+            "bc4fd015-99a1-402a-9803-64adbe972f8e", "view")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("GENERAL_USER",
+            "ee0e9f98-188c-4f5a-941f-281e1cf361e2", "view")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("GENERAL_USER",
+            "f7c087c3-f632-469e-9308-02da8392df07", "view")
+        </sql>
+        <sql splitStatements="false">
+            CALL insert_role_plan_screen_actions_by_role_plan_actions("GENERAL_USER",
+            "527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab", "view")
+        </sql>
+    </changeSet>
+
+    <!-- Drops existed role_privileges table -->
+    <changeSet id="1689858727" author="pmo">
+        <dropTable tableName="role_privileges"/>
+    </changeSet>
+
+    <!-- Creates role_privileges table -->
+    <changeSet id="1689862327" author="pmo">
+        <createTable tableName="role_privileges">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="company_id" type="UUID"/>
+            <column name="role" type="varchar(100)"/>
+            <column name="privileges" type="json"/>
+            <column name="is_delete" type="boolean" defaultValueBoolean="false"/>
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Adds a column plan_id in company table and role_id in user table -->
+    <changeSet id="1692540727" author="pmo">
+        <addColumn tableName="company">
+            <column name="plan_id" type="uuid"/>
+        </addColumn>
+        <addColumn tableName="user">
+            <column name="role_id" type="UUID">
+                <constraints foreignKeyName="fk_user_role_id" references="role(id)" nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!--Adds isSubscriptionActive column in company table-->
+    <changeSet id="1690255976" author="pmo">
+        <addColumn tableName="company">
+            <column name="is_subscription_active" type="boolean" defaultValueBoolean="true"/>
+        </addColumn>
+    </changeSet>
+
+    <!--Inserts card details in Role_Plan_Screen table, when ROLE is SUPER_ADMIN and PLAN is FREE, STANDARD, PREMIUM -->
+    <changeSet id="1690261376" author="pmo">
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='cardDetails/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='cardDetails/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='cardDetails/')"/>
+        </insert>
+    </changeSet>
+
+<!--    Inserts project timeline and general user screens in screen table-->
+    <changeSet id="1691553776" author="pmo">
+        <insert tableName="screen">
+            <column name="name" value="Project Timeline"/>
+            <column name="url" value="projectManager/projectTimeline"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="My Projects"/>
+            <column name="url" value="userDashboard/myProjects"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="My Conflicts"/>
+            <column name="url" value="userDashboard/myConflicts"/>
+            <column name="description" value=""/>
+        </insert>
+        <insert tableName="screen">
+            <column name="name" value="My Work"/>
+            <column name="url" value="userDashboard/myWork"/>
+            <column name="description" value=""/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="1691553777" author="pmo">
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is GENERAL_USER and PLAN is FREE -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myProjects')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myWork')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is GENERAL_USER and PLAN is STANDARD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myProjects')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myConflicts')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myWork')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is GENERAL_USER and PLAN is PREMIUM -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myProjects')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myConflicts')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myWork')"/>
+        </insert>
+
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is GENERAL_USER and PLAN is GOLD -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myProjects')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myConflicts')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='GENERAL_USER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='userDashboard/myWork')"/>
+        </insert>
+    </changeSet>
+
+<!--    Inserts project timeline screen in role_plan_screen table, for each role and plan  -->
+    <changeSet id="1691553778" author="pmo">
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='PROJECT_MANAGER')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='projectManager/projectTimeline')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceRequests/')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='RESOURCE_MANAGER')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='resourceRequests/')"/>
+        </insert>
+    </changeSet>
+
+<!--    Updates resource requests screen route -->
+    <changeSet id="1691553779" author="pmo">
+        <update tableName="screen">
+            <column name="url" value="resourceManager/resourceRequests"/>
+            <where>name = 'Resource Requests'</where>
+        </update>
+    </changeSet>
+
+<!-- Created hasPassword column in User -->
+    <changeSet id = "1691585606" author = "pmo">
+        <addColumn tableName = "user">
+            <column name = "has_password" type = "boolean" defaultValueBoolean = "false"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1692972586" author="pmo">
+        <addColumn tableName="company">
+            <column name="plan_package_id" type="uuid"/>
+        </addColumn>
+    </changeSet>
+
+    <!--Updated screen table with card details screen now part of admin tab -->
+    <changeSet id="1693914840" author="pmo">
+        <update tableName="screen">
+            <column name="url" value="admin/cardDetails"/>
+            <where> name = 'Card Details'</where>
+        </update>
+    </changeSet>
+
+    <!--Inserts card details in Role_Plan_Screen table, when ROLE is ADMIN and PLAN is FREE, STANDARD, PREMIUM, GOLD -->
+    <changeSet id="1693914841" author="pmo">
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cardDetails')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cardDetails')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cardDetails')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/cardDetails')"/>
+        </insert>
+    </changeSet>
+
+    <!--Adds pending invoice in screen table  -->
+    <changeSet id="1695648575" author="pmo">
+        <insert tableName="screen">
+            <column name="name" value="Pending Invoice"/>
+            <column name="url" value="admin/pendingInvoice"/>
+            <column name="description" value=""/>
+        </insert>
+    </changeSet>
+
+    <!--Inserts card details in Role_Plan_Screen table, when ROLE is ADMIN or SUPER_ADMIN and PLAN is FREE, STANDARD, PREMIUM, GOLD -->
+    <changeSet id="1695648590" author="pmo">
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/pendingInvoice')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/pendingInvoice')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/pendingInvoice')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/pendingInvoice')"/>
+        </insert>
+
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/pendingInvoice')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="ee0e9f98-188c-4f5a-941f-281e1cf361e2"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/pendingInvoice')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="f7c087c3-f632-469e-9308-02da8392df07"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/pendingInvoice')"/>
+        </insert>
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="527e38c3-e9b0-4232-bb57-d7a8fdd4c7ab"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/pendingInvoice')"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1701093089" author="pmo">
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is SUPER_ADMIN and PLAN is FREE -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='SUPER_ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/resourceTeam')"/>
+        </insert>
+        <!--Inserts data in Role_Plan_Screen table, when ROLE is ADMIN and PLAN is FREE -->
+        <insert tableName="role_plan_screen">
+            <column name="role_id" valueComputed="(SELECT id from role where name='ADMIN')"/>
+            <column name="plan_id" value="bc4fd015-99a1-402a-9803-64adbe972f8e"/>
+            <column name="screen_id" valueComputed="(SELECT id from screen where url='admin/resourceTeam')"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1702465782" author="pmo">
+        <preConditions onFail="MARK_RAN">
+            <and><tableExists tableName="screen" /></and>
+            <and><tableExists tableName="action"/></and>
+            <and><tableExists tableName="role_plan_screen"/></and>
+            <and><tableExists tableName="role_plan_screen_action"/></and>
+        </preConditions>
+        <dropTable cascadeConstraints="true" tableName="role_plan_screen_action"/>
+        <dropTable cascadeConstraints="true" tableName="role_plan_screen"/>
+        <dropTable cascadeConstraints="true" tableName="action"/>
+        <dropTable cascadeConstraints="true" tableName="screen"/>
+    </changeSet>
+
+    <!--Inserts executive in Role table -->
+    <changeSet id="1705412583" author="pmo">
+        <insert tableName="role">
+            <column name="name" value="EXECUTIVE"/>
+            <column name="description" value=""/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

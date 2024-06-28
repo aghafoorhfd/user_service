@@ -1,0 +1,163 @@
+server:
+    port: 8085
+    servlet:
+        context-path: /user_service
+        encoding:
+            force: true
+    environment: dev1
+spring:
+    application:
+        name: user_service
+    batch:
+        job:
+            enabled: false
+    jackson:
+        serialization:
+            indent-output: true
+    jpa:
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+    main:
+        allow-bean-definition-overriding: true
+    profiles:
+        active: develop
+    mvc:
+        pathmatch:
+            matching-strategy: ant_path_matcher
+    activemq:
+        broker-url: tcp://localhost:61616
+        user: admin
+        password: admin
+        topic: PMO
+        queue:
+            email: emailQueue
+            subscription: subscriptionQueue
+            customer: customerQueue
+            project: projectQueue
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: "*"
+
+front-end:
+    base-url: .localhost:3000
+    protocol: http://
+    path:
+        set-password: /auth/set-password/{0}/{1}
+        reset-password: /auth/reset-password/{0}/{1}
+user:
+    service:
+        database:
+            isMultiTenancyEnabled: false
+
+feign:
+    logging: BASIC
+
+auth:
+    service:
+        url: http://10.4.100.183:8080/auth_service/api/users
+        readTimeout: 60000
+        connectTimeout: 30000
+        followRedirects: false
+
+resource:
+    service:
+        url: http://10.4.100.183:8091/resource_service/api
+        readTimeout: 60000
+        connectTimeout: 30000
+        followRedirects: false
+
+resilience4j:
+    retry:
+        instances:
+            auth-client:
+                maxAttempts: 2 # Number of retry attempts before giving up
+                waitDuration: 3000 # Wait duration in milliseconds between retries
+                ignoreExceptions:
+                    - com.pmo.common.exception.FiegnClientException
+                    - com.pmo.common.exception.ApplicationException
+    circuitbreaker:
+        instances:
+            auth-client-circuitbreaker:
+                registerHealthIndicator: true
+                slidingWindowSize: 10 # Number of calls in a sliding window
+                minimumNumberOfCalls: 3 # Minimum number of calls in a sliding window required before considering the circuit for being opened/closed
+                permittedNumberOfCallsInHalfOpenState: 3 # Number of calls permitted in half-open state
+                waitDurationInOpenState: 5000 # Duration in milliseconds to wait before transitioning from OPEN to HALF_OPEN state
+                failureRateThreshold: 50 # Failure rate threshold in percentage for the circuit to open
+                automaticTransitionFromOpenToHalfOpenEnabled: true # Allow automatic transition from OPEN to HALF_OPEN state
+
+keycloak:
+    realm: master
+    auth-server-url: http://10.4.100.183:8082/
+    ssl-required: external
+    resource: admin-cli
+    credentials:
+        secret: VZyN3N4UAy8xwl82QWSWeiMouQDV8ziV
+    bearer-only: true
+    cors: true
+    public-client: true
+kc:
+    admin:
+        user: admin
+        password: admin
+    pmo-client: auth-service
+
+multi-tenancy:
+    async-executor:
+        core-pool-size: 7
+        max-pool-size: 42
+        queue-capacity: 11
+        thread-name-prefix: TenantAwareTaskExecutor-
+    datasource-cache:
+        maximumSize: 500
+        expireAfterAccess: 5
+    master:
+        repository:
+            packages: com.pmo.userservice.domain.multitenancy.repository
+        entityManager:
+            packages: com.pmo.userservice.domain.multitenancy.domain
+            persistence-unit: master-persistence-unit
+        datasource:
+            url: jdbc:mysql://10.4.100.183:3306/master
+            username: ${DATASOURCE_USERNAME:root}
+            password: ${DATASOURCE_PASSWORD:}
+        liquibase:
+            enabled: false
+        register-endpoint-url: uri=/user_service/api/users/register
+    tenant:
+        repository:
+            packages: com.pmo.userservice.domain.repository
+        entityManager:
+            packages: com.pmo.userservice.domain.model
+            persistence-unit : tenant-persistence-unit
+        datasource:
+            url-prefix: jdbc:mysql://10.4.100.183:3306/userservice_
+            url-suffix: ?createDatabaseIfNotExist=true
+            drop-database-statement: DROP DATABASE IF EXISTS userservice_
+            hikari:
+                maximumPoolSize: 2
+                minimumIdle: 0
+                idleTimeout: 30000
+        liquibase:
+            changeLog: classpath:liquibase/changelog/00000000000000_initial_schema.xml
+
+cloudflare:
+    service:
+        base-url: https://api.cloudflare.com/client/v4/zones/
+        readTimeout: 30000
+        connectTimeout: 30000
+        followRedirects: false
+        ttl: 3600
+    zone-id: db668ccfe84ba997bc18b2f715c949ca/
+    access-token: Bearer y80Y-DU-7_AwUElTXXVAksFuXYi7xlvW1zFtBzf-
+    domain: 192.168.1.1
+
+env:
+    support:
+        email: pmotrackersupport@pmotracker.com
+        password: Admin@1234

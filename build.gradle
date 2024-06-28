@@ -1,0 +1,73 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.7.5'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id "org.sonarqube" version "3.5.0.2730"
+}
+
+sonar {
+  properties {
+    property "sonar.projectKey", "user_service"
+  }
+}
+
+group = 'com.pmo'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+	maven { url 'https://repo.spring.io/snapshot' }
+	maven {
+		url System.getenv('LIB_COMMON_URL')
+		credentials {
+			username System.getenv('LIB_COMMON_USER_GLOBAL')
+			password System.getenv('LIB_COMMON_PASSWORD_GLOBAL')
+		}
+	}
+	mavenLocal()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.keycloak.bom:keycloak-adapter-bom:15.0.2'
+    }
+}
+
+ext {
+    set('keycloakVersion', '15.0.2')
+}
+
+dependencies {
+    implementation 'com.pmo:lib_common:0.0.12-SNAPSHOT'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.7'
+    implementation 'org.liquibase:liquibase-core'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.7.5'
+    implementation "com.zaxxer:HikariCP"
+    compileOnly 'org.projectlombok:lombok:+'
+    annotationProcessor 'org.projectlombok:lombok:+'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation group: 'io.springfox', name: 'springfox-boot-starter', version: '3.0.0'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-activemq', version: '2.7.6'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:3.1.5'
+    implementation group: 'io.github.openfeign', name: 'feign-jackson', version: '9.3.1'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot2:1.7.0'
+    implementation "org.mapstruct:mapstruct:1.5.3.Final"
+    annotationProcessor "org.mapstruct:mapstruct-processor:1.5.3.Final"
+    implementation group: 'org.keycloak', name: 'keycloak-spring-boot-starter', version: '15.0.2'
+    implementation group: 'org.keycloak', name: 'keycloak-admin-client', version: '15.0.2'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.0.6'
+    implementation 'com.github.blagerweij:liquibase-sessionlock:1.5.1'
+    implementation group: 'io.github.openfeign', name: 'feign-okhttp', version: '11.1'
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
